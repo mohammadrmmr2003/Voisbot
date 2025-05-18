@@ -2,7 +2,9 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from pytgcalls import PyTgCalls, idle
 from pytgcalls.types import Update
-from pytgcalls.types.input_stream import InputStream, AudioPiped
+from pytgcalls.types.input_stream import InputStream
+from pytgcalls.types.input_stream.input_audio import AudioPiped
+from pytgcalls.types.input_stream.quality import HighQualityAudio
 from youtubesearchpython import VideosSearch
 from yt_dlp import YoutubeDL
 from collections import deque
@@ -24,7 +26,7 @@ def ensure_silence_file():
         os.makedirs("downloads")
     silence_path = "downloads/silence.mp3"
     if not os.path.exists(silence_path):
-        os.system("ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 " + silence_path + " -y")
+        os.system(f"ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 {silence_path} -y")
 ensure_silence_file()
 
 def search_youtube(query):
@@ -62,8 +64,10 @@ async def check_and_play_next(chat_id: int):
         try:
             await pytgcalls.join_group_call(
                 chat_id,
-                InputStream(AudioPiped(next_track)),
-                stream_type="local",
+                InputStream(
+                    AudioPiped(next_track),
+                    HighQualityAudio()
+                ),
             )
             voice_chats[chat_id] = next_track
         except Exception as e:
@@ -131,8 +135,10 @@ async def clear_files(client, message):
 async def join_vc(client, message):
     await pytgcalls.join_group_call(
         message.chat.id,
-        InputStream(AudioPiped("downloads/silence.mp3")),
-        stream_type="local",
+        InputStream(
+            AudioPiped("downloads/silence.mp3"),
+            HighQualityAudio()
+        ),
     )
 
 @app.on_message(filters.command("leftvc") & filters.group)
