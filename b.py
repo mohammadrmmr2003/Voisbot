@@ -1,6 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from pytgcalls import GroupCall, idle
+from pytgcalls import PyTgCalls, idle
 from pytgcalls.types import Update
 from pytgcalls.types.input_stream import InputStream, AudioPiped
 from youtubesearchpython import VideosSearch
@@ -8,13 +8,12 @@ from yt_dlp import YoutubeDL
 from collections import deque
 import asyncio, os
 
-# تنظیمات ربات
 api_id = 23446876
 api_hash = "0e59ef9f19f0bbf7ea5188ed0169656f"
 bot_token = "8057793323:AAGmKtEeJVQP5flTMQFEpVlSoiQs6Zl8C1I"
 
 app = Client("search_voice_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
-pytgcalls = GroupCall(app)
+pytgcalls = PyTgCalls(app)
 
 voice_chats = {}
 play_queues = {}
@@ -61,8 +60,11 @@ async def check_and_play_next(chat_id: int):
         next_track = play_queues[chat_id].popleft()
         is_playing[chat_id] = True
         try:
-            await pytgcalls.join(chat_id)
-            await pytgcalls.change_stream(InputStream(AudioPiped(next_track)))
+            await pytgcalls.join_group_call(
+                chat_id,
+                InputStream(AudioPiped(next_track)),
+                stream_type="local",
+            )
             voice_chats[chat_id] = next_track
         except Exception as e:
             print(f"خطا در پخش ویس‌کال: {e}")
@@ -106,13 +108,13 @@ async def show_queue(client, message):
 
 @app.on_message(filters.command("ردکردن") & filters.group)
 async def skip_track(client, message):
-    await pytgcalls.leave(message.chat.id)
+    await pytgcalls.leave_group_call(message.chat.id)
     is_playing[message.chat.id] = False
     await check_and_play_next(message.chat.id)
 
 @app.on_message(filters.command("پایان") & filters.group)
 async def stop_call(client, message):
-    await pytgcalls.leave(message.chat.id)
+    await pytgcalls.leave_group_call(message.chat.id)
     is_playing[message.chat.id] = False
     if message.chat.id in voice_chats:
         del voice_chats[message.chat.id]
@@ -127,12 +129,15 @@ async def clear_files(client, message):
 
 @app.on_message(filters.command("joinvc") & filters.group)
 async def join_vc(client, message):
-    await pytgcalls.join(message.chat.id)
-    await pytgcalls.change_stream(InputStream(AudioPiped("downloads/silence.mp3")))
+    await pytgcalls.join_group_call(
+        message.chat.id,
+        InputStream(AudioPiped("downloads/silence.mp3")),
+        stream_type="local",
+    )
 
 @app.on_message(filters.command("leftvc") & filters.group)
 async def leave_vc(client, message):
-    await pytgcalls.leave(message.chat.id)
+    await pytgcalls.leave_group_call(message.chat.id)
 
 async def main():
     await app.start()
