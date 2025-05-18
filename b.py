@@ -9,8 +9,8 @@ from collections import deque
 import asyncio, os
 
 # تنظیمات ربات
-api_id = 123456  # آیدی API
-api_hash = "your_api_hash"
+api_id = 23446876  # آیدی API
+api_hash = "0e59ef9f19f0bbf7ea5188ed0169656f"
 bot_token = "8057793323:AAGmKtEeJVQP5flTMQFEpVlSoiQs6Zl8C1I"
 
 app = Client("search_voice_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
