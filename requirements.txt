@@ -1,5 +1,5 @@
 pyrogram==2.0.106
 tgcrypto
 pytgcalls==3.0.0.dev22
-youtubesearchpython
+git+https://github.com/alexmercerind/youtube-search-python.git@master#egg=youtubesearchpython
 yt-dlp
